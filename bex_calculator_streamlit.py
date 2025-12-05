@@ -300,13 +300,16 @@ def calculate_rebalancing(be_return: float, current_shares: float,
     # This prevents selling entire position on extreme moves
     MAX_REBALANCE_PCT = 0.50
     
+    raw_rebal_pct = rebal_pct
     rebal_pct = min(rebal_pct, MAX_REBALANCE_PCT)
-
-    
+    cap_hit = raw_rebal_pct > MAX_REBALANCE_PCT
 
     shares_to_sell = current_shares * rebal_pct
 
-    
+    if cap_hit:
+        reason = f'BE up {be_return*100:.2f}% → Rebalance {rebal_pct*100:.1f}% of position (capped at 50%)'
+    else:
+        reason = f'BE up {be_return*100:.2f}% → Rebalance {rebal_pct*100:.1f}% of position'
 
     return {
 
@@ -316,7 +319,7 @@ def calculate_rebalancing(be_return: float, current_shares: float,
 
         'percentage': rebal_pct * 100,
 
-        'reason': f'BE up {be_return*100:.2f}% → Rebalance {rebal_pct*100:.1f}% of position'
+        'reason': reason
 
     }
 
