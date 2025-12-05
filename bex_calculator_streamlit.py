@@ -28,7 +28,7 @@ st.set_page_config(
 
     page_title="BEX Optimal Strategy Calculator",
 
-    page_icon="📈",
+    page_icon=None,
 
     layout="wide",
 
@@ -48,43 +48,47 @@ st.markdown("""
 
         font-weight: 700;
 
-        color: #1f77b4;
+        color: #000000;
 
         margin-bottom: 0.5rem;
+
+        letter-spacing: -0.02em;
 
     }
 
     .sub-header {
 
-        font-size: 1.2rem;
+        font-size: 1.1rem;
 
-        color: #666;
+        color: #666666;
 
         margin-bottom: 2rem;
+
+        font-weight: 400;
 
     }
 
     .metric-card {
 
-        background-color: #f0f2f6;
+        background-color: #f5f5f5;
 
         padding: 1.5rem;
 
-        border-radius: 0.5rem;
+        border-radius: 0.25rem;
 
-        border-left: 4px solid #1f77b4;
+        border-left: 2px solid #000000;
 
     }
 
     .success-box {
 
-        background-color: #d4edda;
+        background-color: #f5f5f5;
 
-        border-left: 4px solid #28a745;
+        border-left: 3px solid #000000;
 
-        padding: 1rem;
+        padding: 1.25rem;
 
-        border-radius: 0.5rem;
+        border-radius: 0.25rem;
 
         margin: 1rem 0;
 
@@ -92,13 +96,13 @@ st.markdown("""
 
     .warning-box {
 
-        background-color: #fff3cd;
+        background-color: #f5f5f5;
 
-        border-left: 4px solid #ffc107;
+        border-left: 3px solid #666666;
 
-        padding: 1rem;
+        padding: 1.25rem;
 
-        border-radius: 0.5rem;
+        border-radius: 0.25rem;
 
         margin: 1rem 0;
 
@@ -106,13 +110,13 @@ st.markdown("""
 
     .info-box {
 
-        background-color: #d1ecf1;
+        background-color: #f5f5f5;
 
-        border-left: 4px solid #17a2b8;
+        border-left: 3px solid #999999;
 
-        padding: 1rem;
+        padding: 1.25rem;
 
-        border-radius: 0.5rem;
+        border-radius: 0.25rem;
 
         margin: 1rem 0;
 
@@ -292,9 +296,11 @@ def calculate_rebalancing(be_return: float, current_shares: float,
 
     
 
-    # Can't sell more than 100% of position
-
-    rebal_pct = min(rebal_pct, 1.0)
+    # Cap maximum rebalancing at 50% to maintain position
+    # This prevents selling entire position on extreme moves
+    MAX_REBALANCE_PCT = 0.50
+    
+    rebal_pct = min(rebal_pct, MAX_REBALANCE_PCT)
 
     
 
@@ -334,7 +340,7 @@ def format_percentage(value: float) -> str:
 
 # Header
 
-st.markdown('<p class="main-header">📈 BEX Optimal Rebalancing Calculator</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-header">BEX Optimal Rebalancing Calculator</p>', unsafe_allow_html=True)
 
 st.markdown('<p class="sub-header">Research-backed strategy: 9x multiplier, NO CAP, 10-15% position, weekly rebalancing</p>', unsafe_allow_html=True)
 
@@ -346,7 +352,7 @@ st.markdown('<p class="sub-header">Research-backed strategy: 9x multiplier, NO C
 
 with st.sidebar:
 
-    st.header("⚙️ Strategy Configuration")
+    st.header("Strategy Configuration")
 
     
 
@@ -544,7 +550,7 @@ col1, col2 = st.columns(2)
 
 with col1:
 
-    st.subheader("📊 Current Market Data")
+    st.subheader("Current Market Data")
 
     
 
@@ -596,7 +602,7 @@ with col1:
 
 with col2:
 
-    st.subheader("💼 Your Position")
+    st.subheader("Your Position")
 
     
 
@@ -722,7 +728,7 @@ if rebal_result['action'] == 'HOLD':
 
     <div class="info-box">
 
-        <h3>📊 Action: {rebal_result['action']}</h3>
+        <h3>Action: {rebal_result['action']}</h3>
 
         <p><strong>Reason:</strong> {rebal_result['reason']}</p>
 
@@ -738,7 +744,7 @@ else:
 
     <div class="success-box">
 
-        <h3>🎯 Action: {rebal_result['action']} BEX SHARES</h3>
+        <h3>Action: {rebal_result['action']} BEX SHARES</h3>
 
         <p><strong>Reason:</strong> {rebal_result['reason']}</p>
 
@@ -812,7 +818,7 @@ if rebal_result['action'] == 'SELL':
 
 st.markdown("---")
 
-st.subheader("📋 Detailed Analysis")
+st.subheader("Detailed Analysis")
 
 col1, col2 = st.columns(2)
 
@@ -966,7 +972,7 @@ if rebal_result['action'] == 'SELL':
 
     st.markdown("---")
 
-    st.subheader("📊 Position Allocation")
+    st.subheader("Position Allocation")
 
     
 
@@ -984,7 +990,7 @@ if rebal_result['action'] == 'SELL':
 
         y=[current_allocation, 100 - current_allocation],
 
-        marker_color=['#1f77b4', '#7fcdbb']
+        marker_color=['#000000', '#666666']
 
     ))
 
@@ -1000,7 +1006,7 @@ if rebal_result['action'] == 'SELL':
 
         y=[new_allocation, 100 - new_allocation],
 
-        marker_color=['#ff7f0e', '#98df8a']
+        marker_color=['#333333', '#999999']
 
     ))
 
@@ -1014,7 +1020,7 @@ if rebal_result['action'] == 'SELL':
 
         line_dash="dash",
 
-        line_color="red",
+        line_color="#000000",
 
         annotation_text=f"Target: {target_allocation}%",
 
@@ -1052,7 +1058,7 @@ if rebal_result['action'] == 'SELL':
 
 st.markdown("---")
 
-with st.expander("📚 Strategy Information & Research Backing", expanded=False):
+with st.expander("Strategy Information & Research Backing", expanded=False):
 
     
 
@@ -1186,13 +1192,13 @@ with st.expander("📚 Strategy Information & Research Backing", expanded=False)
 
         **Validation:**
 
-        - ✓ 1,659 days backtested (2019-2025)
+        - 1,659 days backtested (2019-2025)
 
-        - ✓ Synthetic BEX 99.5% accurate vs actual
+        - Synthetic BEX 99.5% accurate vs actual
 
-        - ✓ 13 strategies tested and compared
+        - 13 strategies tested and compared
 
-        - ✓ Every number traced to source data
+        - Every number traced to source data
 
         """)
 
@@ -1380,7 +1386,7 @@ st.markdown("""
 
 <div class="warning-box">
 
-    <h3>⚠️ Important Considerations</h3>
+    <h3>Important Considerations</h3>
 
     <ul>
 
