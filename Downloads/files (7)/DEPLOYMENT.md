@@ -17,7 +17,7 @@
 
 1. Go to [Streamlit Cloud](https://share.streamlit.io/)
 2. Click "New app"
-3. Connect your GitHub repository: `theknight2/openalpha`
+3. Connect your GitHub repository: `theknight2/bex-calculator`
 4. Select branch: `main`
 5. Main file path: `app.py`
 
