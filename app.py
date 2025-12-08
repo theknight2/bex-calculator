@@ -27,6 +27,29 @@ st.markdown("""
     .stApp {
         font-family: 'Inter', sans-serif;
         background: #FFFFFF;
+        color: #000000;
+    }
+    
+    /* Ensure all text is visible */
+    body, p, div, span {
+        color: #000000;
+    }
+    
+    /* Streamlit default text */
+    .stMarkdown, .stText {
+        color: #000000;
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        color: #000000;
+        background-color: #FFFFFF;
+        border: 1px solid #000000;
+    }
+    
+    .stButton > button:hover {
+        background-color: #000000;
+        color: #FFFFFF;
     }
     
     /* Typography */
@@ -45,7 +68,7 @@ st.markdown("""
         font-weight: 400;
         letter-spacing: 0.02em;
         text-transform: uppercase;
-        color: #666666;
+        color: #000000;
         margin-bottom: 0.5rem;
     }
     
@@ -55,7 +78,7 @@ st.markdown("""
         font-weight: 500;
         letter-spacing: 0.1em;
         text-transform: uppercase;
-        color: #666666;
+        color: #000000;
     }
     
     /* Input labels */
@@ -65,7 +88,7 @@ st.markdown("""
         font-weight: 500;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: #666666;
+        color: #000000;
     }
     
     /* Number inputs */
@@ -73,6 +96,8 @@ st.markdown("""
         font-family: 'JetBrains Mono', monospace;
         font-size: 18px;
         font-weight: 500;
+        color: #000000;
+        background: #FFFFFF;
         border: 1px solid #E0E0E0;
         border-radius: 4px;
         padding: 12px 16px;
@@ -80,6 +105,8 @@ st.markdown("""
     
     .stNumberInput input:focus {
         border-color: #000000;
+        background: #FFFFFF;
+        color: #000000;
     }
     
     /* Output container */
@@ -145,7 +172,7 @@ st.markdown("""
     .strategy-desc {
         font-family: 'Inter', sans-serif;
         font-size: 15px;
-        color: #666666;
+        color: #000000;
         line-height: 1.6;
     }
     
@@ -169,7 +196,7 @@ st.markdown("""
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: #666666;
+        color: #000000;
         text-align: left;
         padding: 0.75rem 0;
         border-bottom: 2px solid #000000;
@@ -177,8 +204,9 @@ st.markdown("""
     
     .data-table td {
         padding: 0.75rem 0;
-        border-bottom: 1px solid #F0F0F0;
+        border-bottom: 1px solid #E0E0E0;
         color: #000000;
+        background: #FFFFFF;
     }
     
     /* Dividers */
@@ -238,7 +266,7 @@ with col1:
         <div class="strategy-card selected">
             <div class="strategy-title">CONSERVATIVE</div>
             <div class="strategy-desc">10% position • +7% expected<br>Max drawdown: -8%</div>
-            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #999999;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
+            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #000000;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
         </div>
         """, unsafe_allow_html=True)
     else:
@@ -246,7 +274,7 @@ with col1:
         <div class="strategy-card">
             <div class="strategy-title">CONSERVATIVE</div>
             <div class="strategy-desc">10% position • +7% expected<br>Max drawdown: -8%</div>
-            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #999999;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
+            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #000000;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
         </div>
         """, unsafe_allow_html=True)
     if st.button("SELECT CONSERVATIVE", key="strat_conservative", use_container_width=True):
@@ -259,7 +287,7 @@ with col2:
         <div class="strategy-card selected">
             <div class="strategy-title">AGGRESSIVE</div>
             <div class="strategy-desc">15% position • +86% expected<br>Max drawdown: -57%</div>
-            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #999999;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
+            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #000000;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
         </div>
         """, unsafe_allow_html=True)
     else:
@@ -267,7 +295,7 @@ with col2:
         <div class="strategy-card">
             <div class="strategy-title">AGGRESSIVE</div>
             <div class="strategy-desc">15% position • +86% expected<br>Max drawdown: -57%</div>
-            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #999999;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
+            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #000000;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
         </div>
         """, unsafe_allow_html=True)
     if st.button("SELECT AGGRESSIVE", key="strat_aggressive", use_container_width=True):
