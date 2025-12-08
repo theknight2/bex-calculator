@@ -1,0 +1,121 @@
+================================================================================
+BEX CALCULATOR TEST RESULTS
+================================================================================
+
+Test 1: Small Gain - Below Cap
+--------------------------------------------------------------------------------
+Status: PASSED ✓
+Strategy: Aggressive
+Price: $100.00 → $105.00
+Position: 1000 Shares
+Daily Return: 5.00%
+Offset Applied: 20.00%
+Shares to Sell: 200.0
+Cash Extracted: $21,000.00
+
+Test 2: Large Gain - Hits Cap
+--------------------------------------------------------------------------------
+Status: PASSED ✓
+Strategy: Aggressive
+Price: $100.00 → $120.00
+Position: 1000 Shares
+Daily Return: 20.00%
+Offset Applied: 20.00%
+Shares to Sell: 200.0
+Cash Extracted: $24,000.00
+
+Test 3: Conservative Strategy - Small Gain
+--------------------------------------------------------------------------------
+Status: PASSED ✓
+Strategy: Conservative
+Price: $100.00 → $105.00
+Position: 1000 Shares
+Daily Return: 5.00%
+Offset Applied: 8.00%
+Shares to Sell: 80.0
+Cash Extracted: $8,400.00
+
+Test 4: Price Decline - No Action
+--------------------------------------------------------------------------------
+Status: PASSED ✓
+Strategy: Aggressive
+Price: $100.00 → $95.00
+Position: 1000 Shares
+Daily Return: -5.00%
+Offset Applied: 0.00%
+Shares to Sell: 0.0
+Cash Extracted: $0.00
+
+Test 5: Flat Price - No Action
+--------------------------------------------------------------------------------
+Status: PASSED ✓
+Strategy: Aggressive
+Price: $100.00 → $100.00
+Position: 1000 Shares
+Daily Return: 0.00%
+Offset Applied: 0.00%
+Shares to Sell: 0.0
+Cash Extracted: $0.00
+
+Test 6: Dollar Value Position
+--------------------------------------------------------------------------------
+Status: PASSED ✓
+Strategy: Aggressive
+Price: $100.00 → $110.00
+Position: 100000 Dollar Value
+Daily Return: 10.00%
+Offset Applied: 20.00%
+Shares to Sell: 181.8
+Cash Extracted: $20,000.00
+
+Test 7: Very Small Position
+--------------------------------------------------------------------------------
+Status: PASSED ✓
+Strategy: Aggressive
+Price: $50.00 → $51.00
+Position: 10 Shares
+Daily Return: 2.00%
+Offset Applied: 8.00%
+Shares to Sell: 0.8
+Cash Extracted: $40.80
+
+Test 8: Moderate Strategy - Medium Gain
+--------------------------------------------------------------------------------
+Status: PASSED ✓
+Strategy: Moderate
+Price: $100.00 → $108.00
+Position: 1000 Shares
+Daily Return: 8.00%
+Offset Applied: 12.50%
+Shares to Sell: 125.0
+Cash Extracted: $13,500.00
+
+Test 9: Realistic BE Scenario - High Volatility
+--------------------------------------------------------------------------------
+Status: PASSED ✓
+Strategy: Aggressive
+Price: $102.50 → $118.09
+Position: 670 Shares
+Daily Return: 15.21%
+Offset Applied: 20.00%
+Shares to Sell: 134.0
+Cash Extracted: $15,824.06
+
+Test 10: Conservative - High Volatility
+--------------------------------------------------------------------------------
+Status: PASSED ✓
+Strategy: Conservative
+Price: $102.50 → $118.09
+Position: 670 Shares
+Daily Return: 15.21%
+Offset Applied: 8.00%
+Shares to Sell: 53.6
+Cash Extracted: $6,329.62
+
+================================================================================
+SUMMARY
+================================================================================
+Total Tests: 10
+Passed: 10
+Failed: 0
+Success Rate: 100.0%
