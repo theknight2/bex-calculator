@@ -1,321 +1,453 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+from datetime import datetime
 
 # Page configuration
 st.set_page_config(
-    page_title="BEX Decay Calculator",
-    page_icon="📊",
-    layout="wide"
+    page_title="BEX Calculator",
+    page_icon="▪",
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# Strategy presets
+# CSS Styles - All in one block
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    /* Hide Streamlit elements */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Base styles */
+    .stApp {
+        font-family: 'Inter', sans-serif;
+        background: #FFFFFF;
+    }
+    
+    /* Typography */
+    h1 {
+        font-family: 'Inter', sans-serif;
+        font-size: 56px;
+        font-weight: 300;
+        letter-spacing: -0.02em;
+        color: #000000;
+        margin-bottom: 0.5rem;
+    }
+    
+    h2 {
+        font-family: 'Inter', sans-serif;
+        font-size: 18px;
+        font-weight: 400;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: #666666;
+        margin-bottom: 0.5rem;
+    }
+    
+    h3 {
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #666666;
+    }
+    
+    /* Input labels */
+    .stNumberInput label {
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #666666;
+    }
+    
+    /* Number inputs */
+    .stNumberInput input {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 18px;
+        font-weight: 500;
+        border: 1px solid #E0E0E0;
+        border-radius: 4px;
+        padding: 12px 16px;
+    }
+    
+    .stNumberInput input:focus {
+        border-color: #000000;
+    }
+    
+    /* Output container */
+    .output-container {
+        background: #000000;
+        color: #FFFFFF;
+        padding: 3rem;
+        border-radius: 4px;
+        margin: 2rem 0;
+    }
+    
+    .output-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 48px;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 1rem;
+    }
+    
+    .output-subtitle {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 18px;
+        color: #CCCCCC;
+        margin-bottom: 0.5rem;
+    }
+    
+    .output-reason {
+        font-family: 'Inter', sans-serif;
+        font-size: 16px;
+        font-weight: 300;
+        color: #999999;
+        margin-top: 1.5rem;
+    }
+    
+    /* Strategy cards */
+    .strategy-card {
+        border: 1px solid #E0E0E0;
+        border-radius: 4px;
+        padding: 2.5rem;
+        background: #FFFFFF;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .strategy-card:hover {
+        border-color: #000000;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .strategy-card.selected {
+        background: #000000;
+        color: #FFFFFF;
+        border-color: #000000;
+    }
+    
+    .strategy-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .strategy-desc {
+        font-family: 'Inter', sans-serif;
+        font-size: 15px;
+        color: #666666;
+        line-height: 1.6;
+    }
+    
+    .strategy-card.selected .strategy-title,
+    .strategy-card.selected .strategy-desc {
+        color: #FFFFFF;
+    }
+    
+    /* Table styles */
+    .data-table {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 14px;
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 2rem;
+    }
+    
+    .data-table th {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #666666;
+        text-align: left;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid #000000;
+    }
+    
+    .data-table td {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #F0F0F0;
+        color: #000000;
+    }
+    
+    /* Dividers */
+    hr {
+        border: none;
+        border-top: 1px solid #E0E0E0;
+        margin: 3rem 0;
+    }
+    
+    /* Spacing */
+    .section-spacing {
+        margin: 3rem 0;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Constants
+MULTIPLIER = 9.0
+MAX_REBALANCE = 0.50
+
 STRATEGIES = {
-    "Aggressive": {
-        "multiplier": 4.0,
-        "cap": 0.20,
-        "description": "High risk, maximum extraction (best long-term)",
-        "best_for": "Long-term holders, trending markets"
-    },
     "Conservative": {
-        "multiplier": 2.0,
-        "cap": 0.08,
-        "description": "Low risk, proven returns (+6.53% in high vol)",
-        "best_for": "High volatility markets, risk-averse"
+        "position": 10.0,
+        "expected_return": 7.0,
+        "max_drawdown": -8.0
     },
-    "Moderate": {
-        "multiplier": 3.0,
-        "cap": 0.125,
-        "description": "Balanced approach",
-        "best_for": "Normal volatility conditions"
+    "Aggressive": {
+        "position": 15.0,
+        "expected_return": 86.0,
+        "max_drawdown": -57.0
     }
 }
 
-# Title
-st.title("📊 BEX Volatility Decay Calculator")
-st.caption("End-of-day rebalancing tool for 2x leveraged positions")
+# Default values
+BE_YESTERDAY_DEFAULT = 102.50
+BE_TODAY_DEFAULT = 118.09
+BEX_PRICE_DEFAULT = 14.91
+BEX_SHARES_DEFAULT = 670
+PORTFOLIO_DEFAULT = 100000.0
 
-# Strategy selection
-st.subheader("1. Strategy Configuration")
-col_strat1, col_strat2 = st.columns([1, 2])
+# Session state initialization
+if 'strategy' not in st.session_state:
+    st.session_state.strategy = 'Conservative'
 
-with col_strat1:
-    selected_strategy = st.selectbox(
-        "Select Strategy Preset:",
-        options=list(STRATEGIES.keys()),
-        index=0  # Default to Aggressive
-    )
+# Header
+st.markdown('<h1>BEX Calculator</h1>', unsafe_allow_html=True)
+st.markdown('<h2>Weekly Rebalancing Strategy</h2>', unsafe_allow_html=True)
+st.markdown('<hr>', unsafe_allow_html=True)
 
-with col_strat2:
-    strategy = STRATEGIES[selected_strategy]
-    st.info(f"**{selected_strategy} Strategy:** {strategy['description']}\n\n**Best for:** {strategy['best_for']}")
+# Strategy Selection
+st.markdown('<h3>Strategy Selection</h3>', unsafe_allow_html=True)
+col1, col2 = st.columns(2)
 
-MULTIPLIER = strategy["multiplier"]
-CAP = strategy["cap"]
+with col1:
+    if st.session_state.strategy == "Conservative":
+        st.markdown("""
+        <div class="strategy-card selected">
+            <div class="strategy-title">CONSERVATIVE</div>
+            <div class="strategy-desc">10% position • +7% expected<br>Max drawdown: -8%</div>
+            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #999999;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="strategy-card">
+            <div class="strategy-title">CONSERVATIVE</div>
+            <div class="strategy-desc">10% position • +7% expected<br>Max drawdown: -8%</div>
+            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #999999;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
+        </div>
+        """, unsafe_allow_html=True)
+    if st.button("SELECT CONSERVATIVE", key="strat_conservative", use_container_width=True):
+        st.session_state.strategy = "Conservative"
+        st.rerun()
 
-# Market data inputs
-st.subheader("2. Market Data")
+with col2:
+    if st.session_state.strategy == "Aggressive":
+        st.markdown("""
+        <div class="strategy-card selected">
+            <div class="strategy-title">AGGRESSIVE</div>
+            <div class="strategy-desc">15% position • +86% expected<br>Max drawdown: -57%</div>
+            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #999999;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="strategy-card">
+            <div class="strategy-title">AGGRESSIVE</div>
+            <div class="strategy-desc">15% position • +86% expected<br>Max drawdown: -57%</div>
+            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #999999;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
+        </div>
+        """, unsafe_allow_html=True)
+    if st.button("SELECT AGGRESSIVE", key="strat_aggressive", use_container_width=True):
+        st.session_state.strategy = "Aggressive"
+        st.rerun()
+
+st.markdown('<hr>', unsafe_allow_html=True)
+
+# Market Data Inputs
+st.markdown('<h3>Market Data</h3>', unsafe_allow_html=True)
 col_mkt1, col_mkt2, col_mkt3 = st.columns(3)
 
 with col_mkt1:
-    yesterday_close = st.number_input(
-        "Yesterday's Close ($)",
-        min_value=0.0,
-        value=102.50,
+    be_yesterday = st.number_input(
+        "BE YESTERDAY CLOSE",
+        min_value=0.01,
+        value=BE_YESTERDAY_DEFAULT,
         step=0.01,
-        format="%.2f",
-        help="Previous day's closing price"
-    )
-
-with col_mkt2:
-    today_close = st.number_input(
-        "Today's Close ($)",
-        min_value=0.0,
-        value=118.09,
-        step=0.01,
-        format="%.2f",
-        help="Current day's closing price"
-    )
-
-with col_mkt3:
-    avg_price = st.number_input(
-        "Average Entry Price ($)",
-        min_value=0.0,
-        value=0.0,
-        step=0.01,
-        format="%.2f",
-        help="Optional: For P&L calculation"
-    )
-
-# Portfolio inputs
-st.subheader("3. Portfolio Details")
-col_port1, col_port2 = st.columns(2)
-
-with col_port1:
-    position_type = st.radio(
-        "Position Type:",
-        ["Shares", "Dollar Value"],
-        horizontal=True
-    )
-
-with col_port2:
-    position = st.number_input(
-        f"Current Position ({'shares' if position_type == 'Shares' else '$'})",
-        min_value=0.0,
-        value=670.0,
-        step=1.0 if position_type == "Shares" else 100.0,
         format="%.2f"
     )
 
-# Calculate button
-if st.button("🚀 Calculate Rebalancing Action", type="primary", use_container_width=True):
+with col_mkt2:
+    be_today = st.number_input(
+        "BE TODAY CLOSE",
+        min_value=0.01,
+        value=BE_TODAY_DEFAULT,
+        step=0.01,
+        format="%.2f"
+    )
+
+with col_mkt3:
+    bex_price = st.number_input(
+        "BEX CURRENT PRICE",
+        min_value=0.01,
+        value=BEX_PRICE_DEFAULT,
+        step=0.01,
+        format="%.2f"
+    )
+
+st.markdown('<hr>', unsafe_allow_html=True)
+
+# Position Inputs
+st.markdown('<h3>Position Details</h3>', unsafe_allow_html=True)
+col_pos1, col_pos2 = st.columns(2)
+
+with col_pos1:
+    bex_shares = st.number_input(
+        "BEX SHARES HELD",
+        min_value=0.0,
+        value=BEX_SHARES_DEFAULT,
+        step=1.0,
+        format="%.0f"
+    )
+
+with col_pos2:
+    portfolio_value = st.number_input(
+        "PORTFOLIO VALUE",
+        min_value=0.01,
+        value=PORTFOLIO_DEFAULT,
+        step=1000.0,
+        format="%.2f"
+    )
+
+st.markdown('<hr>', unsafe_allow_html=True)
+
+# Calculation Logic
+be_return = (be_today - be_yesterday) / be_yesterday if be_yesterday > 0 else 0
+
+if be_return <= 0:
+    action = "HOLD"
+    shares_to_sell = 0
+    cash_to_extract = 0
+else:
+    raw_rebal = be_return * MULTIPLIER
+    rebal_pct = min(raw_rebal, MAX_REBALANCE)
+    shares_to_sell = bex_shares * rebal_pct
+    cash_to_extract = shares_to_sell * bex_price
+    action = "SELL"
+
+# Calculate new position
+new_shares = bex_shares - shares_to_sell
+new_position_value = new_shares * bex_price
+new_allocation = (new_position_value / portfolio_value * 100) if portfolio_value > 0 else 0
+
+# Output Container
+st.markdown('<hr>', unsafe_allow_html=True)
+
+if action == "SELL":
+    output_html = f"""
+    <div class="output-container">
+        <div class="output-title">SELL {int(shares_to_sell)} SHARES</div>
+        <div class="output-subtitle">Extract ${cash_to_extract:,.2f}</div>
+        <div class="output-subtitle">Retain {int(new_shares)} shares ({new_allocation:.1f}%)</div>
+        <div class="output-reason">BE rose {be_return * 100:.2f}% today</div>
+    </div>
+    """
+else:
+    output_html = f"""
+    <div class="output-container">
+        <div class="output-title">HOLD POSITION</div>
+        <div class="output-reason">BE declined or flat ({be_return * 100:.2f}%)</div>
+    </div>
+    """
+st.markdown(output_html, unsafe_allow_html=True)
+
+# Details Table (if SELL)
+if action == "SELL":
+    st.markdown('<hr>', unsafe_allow_html=True)
+    st.markdown('<h3>Position Details</h3>', unsafe_allow_html=True)
     
-    if yesterday_close > 0 and today_close > 0 and position > 0:
-        # Calculate daily return
-        daily_return = (today_close - yesterday_close) / yesterday_close
-        
-        # Calculate offset
-        if daily_return > 0:
-            raw_offset = MULTIPLIER * daily_return
-            offset_percent = min(CAP, raw_offset)
-            cap_hit = raw_offset > CAP
-            
-            # Calculate shares/dollars to sell
-            if position_type == "Shares":
-                shares_to_sell = position * offset_percent
-                dollar_value = shares_to_sell * today_close
-                new_position = position - shares_to_sell
-                position_unit = "shares"
-                total_value = position * today_close
-                new_value = new_position * today_close
-            else:
-                dollar_value = position * offset_percent
-                shares_to_sell = dollar_value / today_close
-                new_position = position - dollar_value
-                position_unit = "$"
-                total_value = position
-                new_value = new_position
-            
-            # Calculate P&L if avg price provided
-            if avg_price > 0:
-                if position_type == "Shares":
-                    unrealized_pnl = position * (today_close - avg_price)
-                else:
-                    shares_held = position / avg_price
-                    unrealized_pnl = shares_held * (today_close - avg_price)
-            else:
-                unrealized_pnl = None
-            
-            # Display action recommendation
-            st.divider()
-            
-            # Action box with proper formatting (no HTML)
-            action_col1, action_col2 = st.columns([2, 1])
-            
-            with action_col1:
-                st.markdown("### ⚠️ Action Required")
-                if cap_hit:
-                    st.warning(f"**SELL BEX SHARES** - Cap limit reached")
-                else:
-                    st.success(f"**SELL BEX SHARES** - Rebalancing recommended")
-                
-                reason_text = f"BE up {daily_return * 100:.2f}% → Rebalance {offset_percent * 100:.1f}% of position"
-                if cap_hit:
-                    reason_text += f" (capped at {CAP * 100:.0f}%)"
-                st.markdown(f"**Reason:** {reason_text}")
-            
-            with action_col2:
-                st.metric(
-                    "Daily Return",
-                    f"{daily_return * 100:.2f}%",
-                    delta=f"{daily_return * 100:.2f}%"
-                )
-            
-            # Main metrics
-            st.divider()
-            st.markdown("### 📈 Rebalancing Summary")
-            
-            col_met1, col_met2, col_met3, col_met4 = st.columns(4)
-            
-            with col_met1:
-                st.metric(
-                    "Shares to Sell",
-                    f"{shares_to_sell:,.0f}",
-                    delta=f"-{offset_percent * 100:.1f}% of position",
-                    delta_color="inverse"
-                )
-            
-            with col_met2:
-                st.metric(
-                    "Cash to Extract",
-                    f"${dollar_value:,.2f}",
-                    delta="Profit taking",
-                    delta_color="normal"
-                )
-            
-            with col_met3:
-                st.metric(
-                    "New Position",
-                    f"{new_position:,.0f} {position_unit}",
-                    delta=f"${new_value:,.2f}",
-                    delta_color="normal"
-                )
-            
-            with col_met4:
-                new_allocation_pct = (new_value / total_value * 100) if total_value > 0 else 0
-                st.metric(
-                    "New Allocation",
-                    f"{new_allocation_pct:.1f}%",
-                    delta=f"-{offset_percent * 100:.1f}%",
-                    delta_color="inverse"
-                )
-            
-            # Additional details
-            st.divider()
-            st.markdown("### 📊 Calculation Details")
-            
-            detail_col1, detail_col2, detail_col3 = st.columns(3)
-            
-            with detail_col1:
-                st.metric(
-                    "Raw Offset",
-                    f"{raw_offset * 100:.2f}%",
-                    delta="Before cap" if cap_hit else None
-                )
-            
-            with detail_col2:
-                st.metric(
-                    "Applied Offset",
-                    f"{offset_percent * 100:.2f}%",
-                    delta="CAP HIT" if cap_hit else None,
-                    delta_color="off" if cap_hit else "normal"
-                )
-            
-            with detail_col3:
-                st.metric(
-                    "Multiplier",
-                    f"{MULTIPLIER:.1f}x",
-                    delta=f"Cap: {CAP * 100:.0f}%"
-                )
-            
-            # P&L if available
-            if unrealized_pnl is not None:
-                st.divider()
-                pnl_col1, pnl_col2 = st.columns(2)
-                
-                with pnl_col1:
-                    st.metric(
-                        "Unrealized P&L (Total)",
-                        f"${unrealized_pnl:,.2f}",
-                        delta=f"{((today_close - avg_price) / avg_price * 100):.2f}%" if avg_price > 0 else None
-                    )
-                
-                with pnl_col2:
-                    pnl_on_sold = shares_to_sell * (today_close - avg_price) if avg_price > 0 else 0
-                    st.metric(
-                        "P&L on Sold Shares",
-                        f"${pnl_on_sold:,.2f}",
-                        delta=None
-                    )
-            
-            # Calculation formula
-            st.divider()
-            with st.expander("📐 View Calculation Formula"):
-                st.code(f"""
-Daily Return = (Today - Yesterday) / Yesterday
-             = ({today_close:.2f} - {yesterday_close:.2f}) / {yesterday_close:.2f}
-             = {daily_return:.4f} ({daily_return * 100:.2f}%)
-
-Raw Offset = Multiplier × Daily Return
-           = {MULTIPLIER:.1f} × {daily_return:.4f}
-           = {raw_offset:.4f} ({raw_offset * 100:.2f}%)
-
-Applied Offset = min(Cap, Raw Offset)
-               = min({CAP:.2f}, {raw_offset:.4f})
-               = {offset_percent:.4f} ({offset_percent * 100:.2f}%)
-
-Shares to Sell = Position × Applied Offset
-               = {position:.0f} × {offset_percent:.4f}
-               = {shares_to_sell:.0f} shares
-
-Cash Extracted = Shares to Sell × Today's Price
-               = {shares_to_sell:.0f} × {today_close:.2f}
-               = ${dollar_value:,.2f}
-                """)
-            
-        else:
-            # No action needed
-            st.divider()
-            st.info("✅ No offset needed - price declined or flat")
-            st.caption(f"Daily Return: {daily_return * 100:.2f}%")
-            st.caption("Offset only applies when position closes higher than previous day")
+    current_value = bex_shares * bex_price
+    current_allocation = (current_value / portfolio_value * 100) if portfolio_value > 0 else 0
+    cash_after = portfolio_value - current_value + cash_to_extract
+    new_allocation_after = (new_position_value / portfolio_value * 100) if portfolio_value > 0 else 0
     
-    else:
-        st.error("❌ Please enter valid values for all required fields")
-
-# Methodology section
-st.divider()
-with st.expander("📚 How This Works"):
+    details_data = {
+        "METRIC": ["BEX Shares", "Position Value", "Cash Balance", "BEX Allocation"],
+        "CURRENT": [f"{bex_shares:.0f}", f"${current_value:,.2f}", f"${portfolio_value - current_value:,.2f}", f"{current_allocation:.2f}%"],
+        "AFTER": [f"{new_shares:.0f}", f"${new_position_value:,.2f}", f"${cash_after:,.2f}", f"{new_allocation:.2f}%"]
+    }
+    
+    df = pd.DataFrame(details_data)
     st.markdown("""
-    **The Problem:** Leveraged ETFs/ETNs rebalance daily at 4 PM, creating a "buy high, sell low" pattern that causes volatility decay.
-    
-    **The Solution:** Manually counter-rebalance by selling a percentage when the position rises.
-    
-    **Formula:** Offset % = min(Cap, Multiplier × Daily Return)
-    
-    **Current Parameters:**
-    - Multiplier: {:.1f}x
-    - Cap: {:.0f}%
-    - Strategy: {}
-    
-    **Execution:**
-    1. Only applies when position closes higher than previous day
-    2. Execute at end of day (after 4 PM close)
-    3. Reduces exposure before volatility reverses
-    4. Extracts cash while minimizing decay
-    
-    **Important:** This strategy defends against volatility decay but may cap upside in sustained bull markets.
-    """.format(MULTIPLIER, CAP * 100, selected_strategy))
+    <table class="data-table">
+        <tr>
+            <th>METRIC</th>
+            <th>CURRENT</th>
+            <th>AFTER</th>
+        </tr>
+    """, unsafe_allow_html=True)
+    for i in range(len(df)):
+        st.markdown(f"""
+        <tr>
+            <td>{df.iloc[i]['METRIC']}</td>
+            <td>{df.iloc[i]['CURRENT']}</td>
+            <td>{df.iloc[i]['AFTER']}</td>
+        </tr>
+        """, unsafe_allow_html=True)
+    st.markdown("</table>", unsafe_allow_html=True)
 
-# Footer
-st.divider()
-st.caption(f"Current parameters: Multiplier = {MULTIPLIER:.1f}x, Cap = {CAP * 100:.0f}% | Strategy: {selected_strategy} | Backtested on 1,636 trading days")
+# Expanders
+with st.expander("STRATEGY METHODOLOGY"):
+    st.markdown("""
+    ### Weekly Rebalancing Strategy
+    
+    **Core Principle**
+    
+    BEX internally rebalances daily to maintain 2x leverage, creating volatility decay. We counter this by selling after BE gains, extracting profits before decay occurs.
+    
+    **Formula**
+    
+    Shares to Sell = Current Shares × min(BE Return × 9.0, 50%)
+    
+    **Position Sizing**
+    
+    Conservative: 10% of portfolio (Kelly Criterion optimal)
+    Aggressive: 15% of portfolio (Higher growth, higher risk)
+    
+    **Expected Performance**
+    
+    Conservative: +7% over 6.5 years vs -85% buy-and-hold
+    Aggressive: +86% over 6.5 years vs -85% buy-and-hold
+    
+    Based on 1,659 days of historical data validation.
+    """)
+
+with st.expander("WEEKLY EXECUTION WORKFLOW"):
+    st.markdown("""
+    ### Weekly Execution (Friday 4:00 PM ET)
+    
+    1. Note BE closing prices (this Friday vs last Friday)
+    2. Note current BEX price
+    3. Enter values in calculator
+    4. Execute recommendation (SELL or HOLD)
+    5. Record transaction in tracking spreadsheet
+    
+    **If SELL:**
+    Place market or limit order for specified shares at BEX price.
+    
+    **If HOLD:**
+    No action required. Review again next Friday.
+    
+    **Tracking:**
+    Date | BE Return | Shares Sold | Cash Extracted | Remaining Position
+    """)
