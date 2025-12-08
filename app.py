@@ -1,7 +1,3 @@
-"""
-BEX Calculator - Deployment File
-Streamlit Cloud deployment entry point
-"""
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -31,25 +27,8 @@ st.markdown("""
     }
     
     /* Ensure all text is visible */
-    body, p, div, span {
+    body, p, div, span, label {
         color: #000000;
-    }
-    
-    /* Streamlit default text */
-    .stMarkdown, .stText {
-        color: #000000;
-    }
-    
-    /* Buttons */
-    .stButton > button {
-        color: #000000;
-        background-color: #FFFFFF;
-        border: 1px solid #000000;
-    }
-    
-    .stButton > button:hover {
-        background-color: #000000;
-        color: #FFFFFF;
     }
     
     /* Typography */
@@ -68,7 +47,7 @@ st.markdown("""
         font-weight: 400;
         letter-spacing: 0.02em;
         text-transform: uppercase;
-        color: #000000;
+        color: #666666;
         margin-bottom: 0.5rem;
     }
     
@@ -82,13 +61,14 @@ st.markdown("""
     }
     
     /* Input labels */
-    .stNumberInput label {
+    .stNumberInput label,
+    .stSlider label {
         font-family: 'Inter', sans-serif;
         font-size: 14px;
         font-weight: 500;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: #000000;
+        color: #666666;
     }
     
     /* Number inputs */
@@ -107,6 +87,15 @@ st.markdown("""
         border-color: #000000;
         background: #FFFFFF;
         color: #000000;
+    }
+    
+    /* Slider */
+    .stSlider {
+        margin-top: 1rem;
+    }
+    
+    .stSlider label {
+        color: #666666;
     }
     
     /* Output container */
@@ -149,6 +138,7 @@ st.markdown("""
         background: #FFFFFF;
         cursor: pointer;
         transition: all 0.2s ease;
+        margin-bottom: 2rem;
     }
     
     .strategy-card:hover {
@@ -167,17 +157,48 @@ st.markdown("""
         font-size: 24px;
         font-weight: 600;
         margin-bottom: 1rem;
+        color: #000000;
     }
     
     .strategy-desc {
         font-family: 'Inter', sans-serif;
         font-size: 15px;
-        color: #000000;
+        color: #666666;
         line-height: 1.6;
     }
     
     .strategy-card.selected .strategy-title,
     .strategy-card.selected .strategy-desc {
+        color: #FFFFFF;
+    }
+    
+    .strategy-footer {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 13px;
+        color: #999999;
+        margin-top: 1rem;
+        border-top: 1px solid #E0E0E0;
+        padding-top: 1rem;
+    }
+    
+    .strategy-card.selected .strategy-footer {
+        color: #CCCCCC;
+        border-top-color: #333333;
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        color: #000000;
+        background-color: #FFFFFF;
+        border: 1px solid #000000;
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .stButton > button:hover {
+        background-color: #000000;
         color: #FFFFFF;
     }
     
@@ -196,7 +217,7 @@ st.markdown("""
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: #000000;
+        color: #666666;
         text-align: left;
         padding: 0.75rem 0;
         border-bottom: 2px solid #000000;
@@ -216,9 +237,18 @@ st.markdown("""
         margin: 3rem 0;
     }
     
-    /* Spacing */
-    .section-spacing {
-        margin: 3rem 0;
+    /* Expanders */
+    .streamlit-expanderHeader {
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #000000;
+    }
+    
+    .streamlit-expanderContent {
+        color: #000000;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -250,15 +280,17 @@ PORTFOLIO_DEFAULT = 100000.0
 # Session state initialization
 if 'strategy' not in st.session_state:
     st.session_state.strategy = 'Conservative'
+if 'custom_position' not in st.session_state:
+    st.session_state.custom_position = 10.0
 
 # Header
 st.markdown('<h1>BEX Calculator</h1>', unsafe_allow_html=True)
-st.markdown('<h2>Weekly Rebalancing Strategy</h2>', unsafe_allow_html=True)
+st.markdown('<h2>Daily Rebalancing Strategy</h2>', unsafe_allow_html=True)
 st.markdown('<hr>', unsafe_allow_html=True)
 
 # Strategy Selection
 st.markdown('<h3>Strategy Selection</h3>', unsafe_allow_html=True)
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 
 with col1:
     if st.session_state.strategy == "Conservative":
@@ -266,7 +298,7 @@ with col1:
         <div class="strategy-card selected">
             <div class="strategy-title">CONSERVATIVE</div>
             <div class="strategy-desc">10% position • +7% expected<br>Max drawdown: -8%</div>
-            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #000000;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
+            <div class="strategy-footer">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
         </div>
         """, unsafe_allow_html=True)
     else:
@@ -274,7 +306,7 @@ with col1:
         <div class="strategy-card">
             <div class="strategy-title">CONSERVATIVE</div>
             <div class="strategy-desc">10% position • +7% expected<br>Max drawdown: -8%</div>
-            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #000000;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
+            <div class="strategy-footer">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
         </div>
         """, unsafe_allow_html=True)
     if st.button("SELECT CONSERVATIVE", key="strat_conservative", use_container_width=True):
@@ -287,7 +319,7 @@ with col2:
         <div class="strategy-card selected">
             <div class="strategy-title">AGGRESSIVE</div>
             <div class="strategy-desc">15% position • +86% expected<br>Max drawdown: -57%</div>
-            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #000000;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
+            <div class="strategy-footer">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
         </div>
         """, unsafe_allow_html=True)
     else:
@@ -295,12 +327,46 @@ with col2:
         <div class="strategy-card">
             <div class="strategy-title">AGGRESSIVE</div>
             <div class="strategy-desc">15% position • +86% expected<br>Max drawdown: -57%</div>
-            <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #000000;">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
+            <div class="strategy-footer">RESEARCH-BACKED<br>1,659 DAYS VALIDATED</div>
         </div>
         """, unsafe_allow_html=True)
     if st.button("SELECT AGGRESSIVE", key="strat_aggressive", use_container_width=True):
         st.session_state.strategy = "Aggressive"
         st.rerun()
+
+with col3:
+    if st.session_state.strategy == "Custom":
+        st.markdown("""
+        <div class="strategy-card selected">
+            <div class="strategy-title">CUSTOM</div>
+            <div class="strategy-desc">User-defined position sizing<br>Flexible allocation</div>
+            <div class="strategy-footer">CUSTOM CONFIGURATION</div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="strategy-card">
+            <div class="strategy-title">CUSTOM</div>
+            <div class="strategy-desc">User-defined position sizing<br>Flexible allocation</div>
+            <div class="strategy-footer">CUSTOM CONFIGURATION</div>
+        </div>
+        """, unsafe_allow_html=True)
+    if st.button("SELECT CUSTOM", key="strat_custom", use_container_width=True):
+        st.session_state.strategy = "Custom"
+        st.rerun()
+
+# Custom position slider (only show if Custom selected)
+if st.session_state.strategy == "Custom":
+    st.markdown('<hr>', unsafe_allow_html=True)
+    custom_position = st.slider(
+        "CUSTOM POSITION PERCENTAGE",
+        min_value=5.0,
+        max_value=25.0,
+        value=st.session_state.custom_position,
+        step=0.5,
+        format="%.1f%%"
+    )
+    st.session_state.custom_position = custom_position
 
 st.markdown('<hr>', unsafe_allow_html=True)
 
@@ -409,7 +475,6 @@ if action == "SELL":
     current_value = bex_shares * bex_price
     current_allocation = (current_value / portfolio_value * 100) if portfolio_value > 0 else 0
     cash_after = portfolio_value - current_value + cash_to_extract
-    new_allocation_after = (new_position_value / portfolio_value * 100) if portfolio_value > 0 else 0
     
     details_data = {
         "METRIC": ["BEX Shares", "Position Value", "Cash Balance", "BEX Allocation"],
@@ -439,7 +504,7 @@ if action == "SELL":
 # Expanders
 with st.expander("STRATEGY METHODOLOGY"):
     st.markdown("""
-    ### Weekly Rebalancing Strategy
+    ### Daily Rebalancing Strategy
     
     **Core Principle**
     
@@ -447,7 +512,11 @@ with st.expander("STRATEGY METHODOLOGY"):
     
     **Formula**
     
-    Shares to Sell = Current Shares × min(BE Return × 9.0, 50%)
+    Shares to Sell = Current Shares × min(BE Daily Return × 9.0, 50%)
+    
+    **Execution**
+    
+    Daily after market close (4:00 PM ET). Compare today's BE close to yesterday's close. If BE rose, sell proportional BEX shares. If BE declined, hold position.
     
     **Position Sizing**
     
@@ -462,23 +531,27 @@ with st.expander("STRATEGY METHODOLOGY"):
     Based on 1,659 days of historical data validation.
     """)
 
-with st.expander("WEEKLY EXECUTION WORKFLOW"):
+with st.expander("DAILY EXECUTION WORKFLOW"):
     st.markdown("""
-    ### Weekly Execution (Friday 4:00 PM ET)
+    ### Daily Execution Workflow
     
-    1. Note BE closing prices (this Friday vs last Friday)
+    **Every Trading Day at 4:00 PM ET (Market Close):**
+    
+    1. Note BE closing price (today vs yesterday)
     2. Note current BEX price
     3. Enter values in calculator
     4. Execute recommendation (SELL or HOLD)
     5. Record transaction in tracking spreadsheet
     
     **If SELL:**
-    Place market or limit order for specified shares at BEX price.
+    Place market or limit order for specified shares. Execute immediately after close or first thing next morning.
     
     **If HOLD:**
-    No action required. Review again next Friday.
+    No action required. Check again at next market close.
     
-    **Tracking:**
+    **Daily Tracking:**
     Date | BE Return | Shares Sold | Cash Extracted | Remaining Position
+    -----|-----------|-------------|----------------|-------------------
+    12/4 | +15.21%   | 335         | $4,995         | 335
+    12/5 | +0.92%    | 28          | $538           | 307
     """)
-
